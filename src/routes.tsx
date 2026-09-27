@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '@/pages/auth/LoginPage';
 import RoleGuard from '@/components/layout/RoleGuard';
 import AppShell from '@/components/layout/AppShell';
-import Placeholder from '@/pages/Placeholder';
+import Placeholder from '@/pages/PlaceHolder';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
