@@ -9,9 +9,6 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
@@ -181,6 +178,8 @@ function ScheduleDialog({
   const [isActive, setIsActive] = useState(initial?.is_active ?? true);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const NATIVE_SELECT_CLASS =
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -210,37 +209,45 @@ function ScheduleDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Barangay *</Label>
-            <Select value={barangayId} onValueChange={setBarangayId}>
-              <SelectTrigger><SelectValue placeholder="Select barangay" /></SelectTrigger>
-              <SelectContent>
-                {barangays.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="sch-brgy">Barangay *</Label>
+            <select
+              id="sch-brgy"
+              value={barangayId}
+              onChange={(e) => setBarangayId(e.target.value)}
+              className={NATIVE_SELECT_CLASS}
+            >
+              <option value="">Select barangay</option>
+              {barangays.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
-            <Label>Truck (optional)</Label>
-            <Select value={truckId} onValueChange={setTruckId}>
-              <SelectTrigger><SelectValue placeholder="Assign a truck" /></SelectTrigger>
-              <SelectContent>
-                {trucks.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.plate_no}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="sch-truck">Truck (optional)</Label>
+            <select
+              id="sch-truck"
+              value={truckId}
+              onChange={(e) => setTruckId(e.target.value)}
+              className={NATIVE_SELECT_CLASS}
+            >
+              <option value="">Assign a truck</option>
+              {trucks.map((t) => (
+                <option key={t.id} value={t.id}>{t.plate_no}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
-            <Label>Day of Week *</Label>
-            <Select value={String(day)} onValueChange={(v) => setDay(parseInt(v))}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DAY_NAMES.map((d, i) => (
-                  <SelectItem key={i} value={String(i)}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="sch-day">Day of Week *</Label>
+            <select
+              id="sch-day"
+              value={String(day)}
+              onChange={(e) => setDay(parseInt(e.target.value))}
+              className={NATIVE_SELECT_CLASS}
+            >
+              {DAY_NAMES.map((d, i) => (
+                <option key={i} value={String(i)}>{d}</option>
+              ))}
+            </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="tw">Time Window</Label>

@@ -14,13 +14,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -54,6 +47,8 @@ export default function QueuePage() {
             resolved: reports.filter((r) => r.status === 'resolved').length,
         };
     }, [reports]);
+    const NATIVE_SELECT_CLASS =
+        'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
     return (
         <div className="space-y-6">
@@ -96,46 +91,44 @@ export default function QueuePage() {
                         </div>
                         <div>
                             <label className="text-xs font-medium mb-1 block">Status</label>
-                            <Select value={status} onValueChange={(v) => setStatus(v as any)}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All statuses</SelectItem>
-                                    {Object.entries(STATUS_LABELS).map(([k, v]) => (
-                                        <SelectItem key={k} value={k}>{v}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value as any)}
+                                className={NATIVE_SELECT_CLASS}
+                            >
+                                <option value="all">All statuses</option>
+                                {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                                    <option key={k} value={k}>{v}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className="text-xs font-medium mb-1 block">Barangay</label>
-                            <Select
+                            <select
                                 value={barangayId}
-                                onValueChange={setBarangayId}
+                                onChange={(e) => setBarangayId(e.target.value)}
                                 disabled={profile?.role === 'staff'}
+                                className={NATIVE_SELECT_CLASS}
                             >
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    {profile?.role === 'admin' && (
-                                        <SelectItem value="all">All barangays</SelectItem>
-                                    )}
-                                    {barangays.map((b) => (
-                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                {profile?.role === 'admin' && <option value="all">All barangays</option>}
+                                {barangays.map((b) => (
+                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                ))}
+                            </select>
                         </div>
                         <div>
                             <label className="text-xs font-medium mb-1 block">Reason</label>
-                            <Select value={reason} onValueChange={setReason}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All reasons</SelectItem>
-                                    <SelectItem value="no_show">No Show</SelectItem>
-                                    <SelectItem value="late_arrival">Late Arrival</SelectItem>
-                                    <SelectItem value="partial_collection">Partial Collection</SelectItem>
-                                    <SelectItem value="other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <select
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                                className={NATIVE_SELECT_CLASS}
+                            >
+                                <option value="all">All reasons</option>
+                                <option value="no_show">No Show</option>
+                                <option value="late_arrival">Late Arrival</option>
+                                <option value="partial_collection">Partial Collection</option>
+                                <option value="other">Other</option>
+                            </select>
                         </div>
                         <div>
                             <label className="text-xs font-medium mb-1 block">From date</label>
