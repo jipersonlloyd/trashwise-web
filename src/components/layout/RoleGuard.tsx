@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import type { UserRole } from '@/types/user';
+import { supabase } from '@/lib/supabase';
 
 interface Props {
   roles: UserRole[];
@@ -24,7 +25,7 @@ export default function RoleGuard({ roles }: Props) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-    // Not logged in
+  // Not logged in
   if (!isAuthenticated || !profile) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
@@ -42,7 +43,6 @@ export default function RoleGuard({ roles }: Props) {
           <button
             className="text-sm text-blue-600 hover:underline"
             onClick={async () => {
-              const { supabase } = await import('@/lib/supabase');
               await supabase.auth.signOut();
               window.location.href = '/login';
             }}
@@ -60,8 +60,8 @@ export default function RoleGuard({ roles }: Props) {
       profile.role === 'admin'
         ? '/admin/dashboard'
         : profile.role === 'staff'
-        ? '/staff/queue'
-        : '/login'; // users shouldn't be on web
+          ? '/staff/queue'
+          : '/login'; // users shouldn't be on web
     return <Navigate to={home} replace />;
   }
 
