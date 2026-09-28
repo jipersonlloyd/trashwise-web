@@ -4,7 +4,10 @@ import RoleGuard from '@/components/layout/RoleGuard';
 import AppShell from '@/components/layout/AppShell';
 import Placeholder from '@/pages/PlaceHolder';
 import QueuePage from '@/pages/staff/QueuePage';
-import ReportDetailPage from '@/pages/staff/ReportDetailPage';   // ← new
+import ReportDetailPage from '@/pages/staff/ReportDetailPage';
+import BarangaysPage from '@/pages/admin/BarangaysPage';
+import TrucksPage from '@/pages/admin/TrucksPage';
+import SchedulesPage from '@/pages/admin/SchedulesPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -16,7 +19,7 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { path: '/staff/queue', element: <QueuePage /> },
-          { path: '/staff/reports/:id', element: <ReportDetailPage /> },  // ← wired
+          { path: '/staff/reports/:id', element: <ReportDetailPage /> },
         ],
       },
     ],
@@ -30,9 +33,9 @@ export const router = createBrowserRouter([
         children: [
           { path: '/admin/dashboard', element: <Placeholder title="Dashboard" /> },
           { path: '/admin/users', element: <Placeholder title="Users" /> },
-          { path: '/admin/barangays', element: <Placeholder title="Barangays" /> },
-          { path: '/admin/trucks', element: <Placeholder title="Trucks" /> },
-          { path: '/admin/schedules', element: <Placeholder title="Schedules" /> },
+          { path: '/admin/barangays', element: <BarangaysPage /> },
+          { path: '/admin/trucks', element: <TrucksPage /> },
+          { path: '/admin/schedules', element: <SchedulesPage /> },
         ],
       },
     ],
