@@ -8,6 +8,7 @@ import ReportDetailPage from '@/pages/staff/ReportDetailPage';
 import BarangaysPage from '@/pages/admin/BarangaysPage';
 import TrucksPage from '@/pages/admin/TrucksPage';
 import SchedulesPage from '@/pages/admin/SchedulesPage';
+import DashboardPage from '@/pages/admin/DashboardPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -31,7 +32,7 @@ export const router = createBrowserRouter([
       {
         element: <AppShell />,
         children: [
-          { path: '/admin/dashboard', element: <Placeholder title="Dashboard" /> },
+          { path: '/admin/dashboard', element: <DashboardPage /> },
           { path: '/admin/users', element: <Placeholder title="Users" /> },
           { path: '/admin/barangays', element: <BarangaysPage /> },
           { path: '/admin/trucks', element: <TrucksPage /> },
