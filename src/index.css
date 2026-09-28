@@ -30,7 +30,19 @@
   z-index: 1;
 }
 
-/* shadcn dialog overlay + content should sit above everything */
-[data-radix-portal] {
-  z-index: 9999 !important;
+/* Fix: Radix Select dropdown should render above dialogs */
+[data-radix-popper-content-wrapper] {
+  z-index: 10000 !important;
 }
+
+/* Radix Select viewport (the actual dropdown box) */
+[data-radix-select-content] {
+  z-index: 10000 !important;
+}
+
+/* Ensure the dropdown content inside the portal stacks correctly */
+[data-radix-select-content-wrapper] {
+  z-index: 10000 !important;
+}
+
+

@@ -39,32 +39,23 @@ export function useInviteUser() {
       role: UserRole;
       barangay_id?: string | null;
     }) => {
-      const tempPassword = crypto.randomUUID() + 'Aa1!';
-
-      const { data, error } = await supabase.auth.signUp({
-        email: payload.email,
-        password: tempPassword,
-        options: {
-          data: {
-            full_name: payload.full_name,
-            role: payload.role,
-            barangay_id: payload.barangay_id ?? '',
-          },
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
+          email: payload.email,
+          full_name: payload.full_name,
+          role: payload.role,
+          barangay_id: payload.barangay_id ?? null,
         },
       });
 
-      if (error) throw error;
-      if (!data.user) throw new Error('No user returned from signUp');
+      if (error) throw new Error(error.message ?? 'Invite failed');
+      if (data?.error) throw new Error(data.error);
 
-      // If a barangay was selected, patch the profile (trigger creates with role+name but no brgy sometimes)
-      if (payload.barangay_id) {
-        await supabase
-          .from('profiles')
-          .update({ barangay_id: payload.barangay_id })
-          .eq('id', data.user.id);
-      }
-
-      return data.user;
+      // Return the temporary password so we can show it to the admin
+      return data as {
+        user: { id: string; email: string };
+        temporary_password: string;
+      };
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['users'] }),
   });

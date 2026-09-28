@@ -12,9 +12,6 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,7 +25,7 @@ import {
 import { useBarangays } from '@/hooks/useBarangays';
 import { useAuth } from '@/hooks/useAuth';
 import type { UserRole } from '@/types/user';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ROLE_BADGES: Record<UserRole, string> = {
@@ -36,6 +33,9 @@ const ROLE_BADGES: Record<UserRole, string> = {
   staff: 'bg-blue-100 text-blue-800 border-blue-200',
   admin: 'bg-purple-100 text-purple-800 border-purple-200',
 };
+
+const NATIVE_SELECT_CLASS =
+  'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function UsersPage() {
   const { profile: currentUser } = useAuth();
@@ -156,18 +156,13 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Invite dialog */}
       <InviteDialog
         open={inviting}
         onOpenChange={setInviting}
         barangays={barangays}
-        onSubmit={async (payload) => {
-          await invite.mutateAsync(payload);
-          setInviting(false);
-        }}
+        onSubmit={(payload) => invite.mutateAsync(payload)}
       />
 
-      {/* Edit dialog */}
       <EditDialog
         open={!!editing}
         onOpenChange={(o) => !o && setEditing(null)}
@@ -181,7 +176,6 @@ export default function UsersPage() {
         }}
       />
 
-      {/* Delete confirm */}
       <AlertDialog
         open={!!confirmDelete}
         onOpenChange={(o) => {
@@ -239,7 +233,7 @@ function InviteDialog({
     full_name: string;
     role: UserRole;
     barangay_id?: string | null;
-  }) => Promise<void>;
+  }) => Promise<{ user: { id: string; email: string }; temporary_password: string }>;
 }) {
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -247,22 +241,35 @@ function InviteDialog({
   const [barangayId, setBarangayId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+
+    if (createdCredentials) return; // already done — waiting for Close
     if (!email.trim()) { setFormError('Email is required'); return; }
     if (!fullName.trim()) { setFormError('Full name is required'); return; }
 
     setSubmitting(true);
     try {
-      await onSubmit({
+      const result = await onSubmit({
         email: email.trim(),
         full_name: fullName.trim(),
         role,
         barangay_id: barangayId || null,
       });
-      setEmail(''); setFullName(''); setRole('staff'); setBarangayId('');
+      setCreatedCredentials({
+        email: email.trim(),
+        password: result.temporary_password,
+      });
+      setEmail('');
+      setFullName('');
+      setRole('staff');
+      setBarangayId('');
     } catch (err: any) {
       setFormError(err.message ?? 'Invite failed');
     } finally {
@@ -270,8 +277,14 @@ function InviteDialog({
     }
   };
 
+  const handleClose = () => {
+    setCreatedCredentials(null);
+    setFormError(null);
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(o) : handleClose())}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Invite User</DialogTitle>
@@ -281,57 +294,105 @@ function InviteDialog({
             <Label htmlFor="email">Email *</Label>
             <Input
               id="email" type="email" placeholder="staff@example.com"
-              value={email} onChange={(e) => setEmail(e.target.value)} required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={!!createdCredentials}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="name">Full Name *</Label>
             <Input
               id="name" value={fullName}
-              onChange={(e) => setFullName(e.target.value)} required
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              disabled={!!createdCredentials}
             />
           </div>
           <div className="space-y-2">
-            <Label>Role *</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as UserRole)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="invite-role">Role *</Label>
+            <select
+              id="invite-role"
+              value={role}
+              onChange={(e) => setRole(e.target.value as UserRole)}
+              className={NATIVE_SELECT_CLASS}
+              disabled={!!createdCredentials}
+            >
+              <option value="user">User</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
           <div className="space-y-2">
-            <Label>Barangay (for staff)</Label>
-            <Select value={barangayId} onValueChange={setBarangayId}>
-              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-              <SelectContent>
-                {barangays.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Label htmlFor="invite-brgy">Barangay (for staff)</Label>
+            <select
+              id="invite-brgy"
+              value={barangayId}
+              onChange={(e) => setBarangayId(e.target.value)}
+              className={NATIVE_SELECT_CLASS}
+              disabled={!!createdCredentials}
+            >
+              <option value="">None</option>
+              {barangays.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
           </div>
 
-          <div className="text-xs text-muted-foreground bg-slate-50 border rounded px-3 py-2">
-            The user will be created with a temporary password. Have them use
-            "Forgot password" to set their own. (Full invite emails coming in a
-            later step.)
-          </div>
+          {!createdCredentials && (
+            <div className="text-xs text-muted-foreground bg-slate-50 border rounded px-3 py-2">
+              The user will be created with a temporary password. Share it with
+              them; they should change it after first login.
+            </div>
+          )}
+
+          {createdCredentials && (
+            <div className="rounded-md bg-emerald-50 border border-emerald-200 p-3 space-y-3 text-sm">
+              <div className="flex items-center gap-2 font-medium text-emerald-900">
+                <Check className="h-4 w-4" />
+                User created successfully
+              </div>
+              <p className="text-emerald-800 text-xs">
+                Share these credentials with the user — they should change the
+                password after first login:
+              </p>
+              <div className="bg-white rounded border border-emerald-200 p-3 font-mono text-xs space-y-2">
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Email:</span>
+                  <span className="font-semibold">{createdCredentials.email}</span>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <span className="text-muted-foreground">Password:</span>
+                  <span className="font-semibold">{createdCredentials.password}</span>
+                </div>
+              </div>
+              <p className="text-xs text-emerald-700">
+                Save these now — the password won't be shown again.
+              </p>
+            </div>
+          )}
 
           {formError && (
             <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
               {formError}
             </p>
           )}
+
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? 'Inviting...' : 'Send Invite'}
-            </Button>
+            {createdCredentials ? (
+              <Button type="button" onClick={handleClose}>
+                Done
+              </Button>
+            ) : (
+              <>
+                <Button type="button" variant="outline" onClick={handleClose}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? 'Inviting...' : 'Send Invite'}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -365,10 +426,17 @@ function EditDialog({
   const [isActive, setIsActive] = useState(user?.is_active ?? true);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [lastUserId, setLastUserId] = useState(user?.id);
 
-  // Sync when user changes
-  if (open && user && fullName !== user.full_name && !submitting) {
-    // crude reset when switching between rows
+  // Reset form when the target user changes
+  if (user && user.id !== lastUserId) {
+    setFullName(user.full_name);
+    setPhone(user.phone ?? '');
+    setRole(user.role);
+    setBarangayId(user.barangay_id ?? '');
+    setIsActive(user.is_active);
+    setLastUserId(user.id);
+    setFormError(null);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -412,19 +480,18 @@ function EditDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label>Role</Label>
-            <Select
+            <Label htmlFor="edit-role">Role</Label>
+            <select
+              id="edit-role"
               value={role}
-              onValueChange={(v) => setRole(v as UserRole)}
+              onChange={(e) => setRole(e.target.value as UserRole)}
               disabled={isSelf}
+              className={NATIVE_SELECT_CLASS}
             >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="user">User</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="user">User</option>
+              <option value="staff">Staff</option>
+              <option value="admin">Admin</option>
+            </select>
             {isSelf && (
               <p className="text-xs text-muted-foreground">
                 You can't change your own role.
@@ -432,19 +499,19 @@ function EditDialog({
             )}
           </div>
           <div className="space-y-2">
-            <Label>Barangay</Label>
-            <Select
+            <Label htmlFor="edit-brgy">Barangay</Label>
+            <select
+              id="edit-brgy"
               value={barangayId}
-              onValueChange={setBarangayId}
+              onChange={(e) => setBarangayId(e.target.value)}
               disabled={role !== 'staff'}
+              className={NATIVE_SELECT_CLASS}
             >
-              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-              <SelectContent>
-                {barangays.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <option value="">None</option>
+              {barangays.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
             {role !== 'staff' && (
               <p className="text-xs text-muted-foreground">
                 Only staff are assigned to barangays.
