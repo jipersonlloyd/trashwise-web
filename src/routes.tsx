@@ -4,6 +4,7 @@ import RoleGuard from '@/components/layout/RoleGuard';
 import AppShell from '@/components/layout/AppShell';
 import Placeholder from '@/pages/PlaceHolder';
 import QueuePage from '@/pages/staff/QueuePage';
+import ReportDetailPage from '@/pages/staff/ReportDetailPage';   // ← new
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -15,7 +16,7 @@ export const router = createBrowserRouter([
         element: <AppShell />,
         children: [
           { path: '/staff/queue', element: <QueuePage /> },
-          { path: '/staff/reports/:id', element: <Placeholder title="Report Detail" /> },
+          { path: '/staff/reports/:id', element: <ReportDetailPage /> },  // ← wired
         ],
       },
     ],

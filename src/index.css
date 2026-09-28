@@ -18,3 +18,19 @@
   --color-ring: hsl(222.2 84% 4.9%);
   --radius: 0.5rem;
 }
+
+/* Fix: ensure dialogs render above Leaflet map */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 0 !important;
+}
+
+.leaflet-container {
+  z-index: 1;
+}
+
+/* shadcn dialog overlay + content should sit above everything */
+[data-radix-portal] {
+  z-index: 9999 !important;
+}
