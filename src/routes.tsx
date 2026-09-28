@@ -3,25 +3,24 @@ import LoginPage from '@/pages/auth/LoginPage';
 import RoleGuard from '@/components/layout/RoleGuard';
 import AppShell from '@/components/layout/AppShell';
 import Placeholder from '@/pages/PlaceHolder';
+import QueuePage from '@/pages/staff/QueuePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
 
-  // Staff + Admin
   {
     element: <RoleGuard roles={['staff', 'admin']} />,
     children: [
       {
         element: <AppShell />,
         children: [
-          { path: '/staff/queue', element: <Placeholder title="Reports Queue" /> },
+          { path: '/staff/queue', element: <QueuePage /> },
           { path: '/staff/reports/:id', element: <Placeholder title="Report Detail" /> },
         ],
       },
     ],
   },
 
-  // Admin only
   {
     element: <RoleGuard roles={['admin']} />,
     children: [
