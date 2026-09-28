@@ -9,6 +9,7 @@ import BarangaysPage from '@/pages/admin/BarangaysPage';
 import TrucksPage from '@/pages/admin/TrucksPage';
 import SchedulesPage from '@/pages/admin/SchedulesPage';
 import DashboardPage from '@/pages/admin/DashboardPage';
+import UsersPage from '@/pages/admin/UsersPage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
           { path: '/admin/barangays', element: <BarangaysPage /> },
           { path: '/admin/trucks', element: <TrucksPage /> },
           { path: '/admin/schedules', element: <SchedulesPage /> },
+          { path: '/admin/users', element: <UsersPage /> },
         ],
       },
     ],
